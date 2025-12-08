@@ -1,33 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>My Mini App</title>
+    <title>Base Airdrop Checker</title>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <meta
       name="fc:miniapp"
       content='{
         "version": "next",
-        "imageUrl": "base-checker-benicio.vercel.app/splash.png",
+        "imageUrl": "https://base-checker-benicio.vercel.app/splash.png",
         "button": {
           "title": "Open App",
           "action": {
             "type": "launch_frame",
-            "url": "base-checker-benicio.vercel.app/"
+            "url": "https://base-checker-benicio.vercel.app.vercel.app/"
           }
         }
       }'
     />
-  </head>
-  <body>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <meta property="fc:frame" content="vNext" />
     <meta property="fc:frame:image" content="https://i.imgur.com/3QZ7H0q.png" />
     <meta property="fc:frame:button:1" content="Check Allocation" />
-    <meta property="fc:frame:post_url" content="https://base-checker-benicio.vercel.app/api/frame" />
-    <title>Base Airdrop Checker</title>
+    <meta property="fc:frame:post_url" content="https://base-checker-benicio.vercel.app/api/frame" /> 
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Your existing CSS styles remain the same */
@@ -390,8 +388,8 @@
             }
         }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
         <header>
             <div class="logo">Base Airdrop</div>
@@ -499,7 +497,6 @@
         </div>
     </div>
 
-    <!-- Farcaster Frame Elements (hidden in standalone mode) -->
     <div class="farcaster-frame">
         <meta property="fc:frame" content="vNext" />
         <meta property="fc:frame:image" content="https://i.imgur.com/3QZ7H0q.png" />
@@ -836,10 +833,9 @@
             // Example addresses for testing
             walletInput.placeholder = 'Try any Base wallet address';
             walletInput.value = '0x';
-        }); // This was missing - closing the main event listener
+        }); 
     </script>
 
-    <!-- Base MiniApp SDK -->
     <script type="module">
         import { sdk } from "https://esm.sh/@farcaster/miniapp-sdk";
         
