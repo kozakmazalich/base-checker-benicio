@@ -532,8 +532,8 @@
                 'https://base.publicnode.com',
                 'https://1rpc.io/base'
             ];
-            
-            // --- Allocation and Scoring Functions (No Change) ---
+
+            // --- Allocation and Scoring Functions (Unchanged) ---
             
             async function fetchBaseChainData(walletAddress) {
                 try {
@@ -624,7 +624,7 @@
                 const txCount = walletData.transactionCount;
                 const contracts = walletData.uniqueContracts;
                 const tokens = walletData.tokensCreated;
-                const nfts = walletData.nftsCreated;
+                const nfts = walletData.nf"ts;
                 const apps = walletData.appsDeployed;
                 const isBaseApp = walletData.isBaseAppUser;
                 const isFarcaster = walletData.isFarcasterUser;
@@ -806,34 +806,41 @@
                 checkAllocation(address);
             });
             
-            // --- FIX FOR AUTO-FILLING ADDRESS AND CHAIN LOG ---
+            // --- FIX for Auto-Filling Address ---
 
             /**
-             * Attempts to get the connected wallet address from the injected EIP-1193 provider (BaseApp/Warpcast).
-             * Falls back to checking URL parameters (standard Farcaster frame behavior).
+             * Attempts to get the connected wallet address from the injected provider (BaseApp/Warpcast).
              * @returns {Promise<string|null>} The wallet address or null.
              */
             async function getAndCheckWalletAddress() {
-                // 1. Try to get address from the injected provider (BaseApp/Warpcast)
+                // 1. Check URL parameters (standard Farcaster frame behavior)
+                const urlParams = new URLSearchParams(window.location.search);
+                const addressFromUrl = urlParams.get('address');
+                if (addressFromUrl) return addressFromUrl;
+
+                // 2. Try to get address from the injected provider (BaseApp/Warpcast)
                 if (window.ethereum) {
                     try {
-                        // Request accounts. This gets the already connected account if permission was given.
-                        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                        
+                        // Attempt to get currently connected accounts (non-interactive)
+                        let accounts = await window.ethereum.request({ method: 'eth_accounts' });
                         if (accounts.length > 0) {
                             return accounts[0];
                         }
+                        
+                        // If no accounts, try to request connection (interactive, opens prompt)
+                        // This makes the auto-fill more robust but might open a prompt in a desktop browser.
+                        accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                        if (accounts.length > 0) {
+                            return accounts[0];
+                        }
+
                     } catch (error) {
-                        // This error is expected if no wallet is connected yet or the user rejects the initial connection.
-                        console.log("Provider account check failed (this is normal if not connected):", error.message);
+                        // This error is expected if the user rejects the connection request
+                        console.log("Provider account request failed:", error.message);
                     }
                 }
 
-                // 2. Fallback: Check URL parameters (for standard Farcaster frame interaction)
-                const urlParams = new URLSearchParams(window.location.search);
-                const addressFromUrl = urlParams.get('address');
-
-                return addressFromUrl;
+                return null;
             }
 
             /**
@@ -843,13 +850,14 @@
                 const address = await getAndCheckWalletAddress();
                 
                 if (address && address.startsWith('0x') && address.length === 42) {
+                    // Auto-fill the address
                     walletInput.value = address;
                     // Automatically run the check with the fetched address
                     checkAllocation(address);
                 } else {
                     // Fallback for manual input
-                    walletInput.placeholder = 'Try any Base wallet address';
-                    walletInput.value = '0x';
+                    walletInput.placeholder = 'Try any Base wallet address or connect wallet';
+                    walletInput.value = ''; // Clear '0x' if no address found
                 }
             }
 
