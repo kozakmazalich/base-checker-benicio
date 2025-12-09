@@ -532,30 +532,9 @@
                 'https://base.publicnode.com',
                 'https://1rpc.io/base'
             ];
-
-            // Check if we're running in a Farcaster frame
-            function isFarcasterFrame() {
-                return window.location !== window.parent.location || 
-                       document.referrer.includes('warpcast.com') ||
-                       navigator.userAgent.includes('Farcaster');
-            }
-
-            // Handle Farcaster frame interaction
-            function handleFarcasterFrameInteraction() {
-                if (isFarcasterFrame()) {
-                    console.log("Running in Farcaster frame");
-                    
-                    // If there's a wallet address in the URL parameters, use it
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const address = urlParams.get('address');
-                    
-                    if (address) {
-                        walletInput.value = address;
-                        checkAllocation(address);
-                    }
-                }
-            }
-
+            
+            // --- Allocation and Scoring Functions (No Change) ---
+            
             async function fetchBaseChainData(walletAddress) {
                 try {
                     const rpcUrl = BASE_RPC_URLS[0];
@@ -826,15 +805,57 @@
 
                 checkAllocation(address);
             });
-
-            // Initialize
-            handleFarcasterFrameInteraction();
             
-            // Example addresses for testing
-            walletInput.placeholder = 'Try any Base wallet address';
-            walletInput.value = '0x';
+            // --- FIX FOR AUTO-FILLING ADDRESS AND CHAIN LOG ---
+
+            /**
+             * Attempts to get the connected wallet address from the injected EIP-1193 provider (BaseApp/Warpcast).
+             * Falls back to checking URL parameters (standard Farcaster frame behavior).
+             * @returns {Promise<string|null>} The wallet address or null.
+             */
+            async function getAndCheckWalletAddress() {
+                // 1. Try to get address from the injected provider (BaseApp/Warpcast)
+                if (window.ethereum) {
+                    try {
+                        // Request accounts. This gets the already connected account if permission was given.
+                        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                        
+                        if (accounts.length > 0) {
+                            return accounts[0];
+                        }
+                    } catch (error) {
+                        // This error is expected if no wallet is connected yet or the user rejects the initial connection.
+                        console.log("Provider account check failed (this is normal if not connected):", error.message);
+                    }
+                }
+
+                // 2. Fallback: Check URL parameters (for standard Farcaster frame interaction)
+                const urlParams = new URLSearchParams(window.location.search);
+                const addressFromUrl = urlParams.get('address');
+
+                return addressFromUrl;
+            }
+
+            /**
+             * Initialization logic to auto-fill the address and run the check.
+             */
+            async function initializeAutoCheck() {
+                const address = await getAndCheckWalletAddress();
+                
+                if (address && address.startsWith('0x') && address.length === 42) {
+                    walletInput.value = address;
+                    // Automatically run the check with the fetched address
+                    checkAllocation(address);
+                } else {
+                    // Fallback for manual input
+                    walletInput.placeholder = 'Try any Base wallet address';
+                    walletInput.value = '0x';
+                }
+            }
+
+            // Run the auto-check feature on load
+            initializeAutoCheck();
         }); 
     </script>
-
-    </body>
+</body>
 </html>
